@@ -1,0 +1,90 @@
+# Default di progetto per xbox-eth-gateway (ESP-IDF v5.5.x, target esp32).
+# Base: third_party/bluepad32/examples/esp32/sdkconfig.defaults, adattata al
+# SONOFF Dongle Max. Dopo una modifica: cancellare sdkconfig e rilanciare
+# "idf.py set-target esp32".
+
+CONFIG_IDF_TARGET="esp32"
+
+#
+# ESP32
+#
+CONFIG_COMPILER_OPTIMIZATION_PERF=y
+CONFIG_XTAL_FREQ_AUTO=y
+# CPU al massimo (il default di ESP-IDF è 160 MHz): BTstack elabora prima i
+# report del controller e il PBKDF2 del login dura circa un terzo in meno.
+CONFIG_ESP_DEFAULT_CPU_FREQ_MHZ_240=y
+# Tick di FreeRTOS a 1 ms (default 10 ms). Il run loop di BTstack aspetta i suoi
+# timer in tick: con la priorità alzata (GW_BT_TASK_PRIORITY), a 100 Hz girerebbe
+# a vuoto fino a 10 ms ogni volta che un timer scade entro il tick.
+CONFIG_FREERTOS_HZ=1000
+
+# Flash da 16 MB con due slot OTA (vedi partitions.csv).
+CONFIG_ESPTOOLPY_FLASHSIZE_16MB=y
+CONFIG_PARTITION_TABLE_CUSTOM=y
+CONFIG_PARTITION_TABLE_CUSTOM_FILENAME="partitions.csv"
+
+# In caso di crash salva il core dump nella partizione "coredump".
+CONFIG_ESP_COREDUMP_ENABLE_TO_FLASH=y
+
+# app_main() non ritorna: il task main diventa il run loop di BTstack.
+# ESP-IDF 5.5 usa più stack delle versioni precedenti (nota di Bluepad32).
+CONFIG_ESP_MAIN_TASK_STACK_SIZE=8192
+
+#
+# Bluetooth: solo il controller di ESP-IDF, l'host è BTstack.
+#
+CONFIG_BT_ENABLED=y
+CONFIG_BT_CONTROLLER_ONLY=y
+# Controller dual-mode come nell'esempio di Bluepad32: BTstack su ESP32 è
+# compilato con ENABLE_CLASSIC e Bluepad32 invia comandi HCI classic all'avvio,
+# quindi il controller non va messo in "solo BLE". Il BR/EDR serve al DualSense
+# (PS5) e si accende o spegne a livello Bluepad32 (opzione GW_BT_BREDR, default
+# accesa in firmware/components/gw_bt_config/Kconfig).
+CONFIG_BTDM_CTRL_MODE_BTDM=y
+# Almeno uno in più di CONFIG_BLUEPAD32_MAX_DEVICES.
+CONFIG_BTDM_CTRL_BR_EDR_MAX_ACL_CONN=3
+CONFIG_BTDM_CTRL_BLE_MAX_CONN=3
+CONFIG_BTDM_CTRL_BR_EDR_MAX_SYNC_CONN=0
+CONFIG_BTDM_CTRL_AUTO_LATENCY=y
+CONFIG_BTDM_CTRL_MODEM_SLEEP=n
+
+# Il Wi-Fi non viene mai avviato (nessuna chiamata a esp_wifi_*): la radio è
+# tutta del Bluetooth, quindi niente coesistenza software Wi-Fi/BT.
+CONFIG_ESP_COEX_SW_COEXIST_ENABLE=n
+
+#
+# Bluepad32
+#
+CONFIG_BLUEPAD32_PLATFORM_CUSTOM=y
+# Un controller in uso più uno slot di riserva per le riconnessioni.
+CONFIG_BLUEPAD32_MAX_DEVICES=2
+# Niente console interattiva sulla seriale: la gestione passa dalla pagina web.
+CONFIG_BLUEPAD32_USB_CONSOLE_ENABLE=n
+CONFIG_BLUEPAD32_ENABLE_BLE_BY_DEFAULT=y
+
+#
+# BTstack
+#
+CONFIG_BTSTACK_AUDIO=n
+
+#
+# Ethernet: MAC interno dell'ESP32 (RMII). PHY e pin in "Xbox Ethernet Gateway".
+#
+CONFIG_ETH_ENABLED=y
+CONFIG_ETH_USE_ESP32_EMAC=y
+
+#
+# Rete e pagina web
+#
+# Server HTTP (4 connessioni + 3 interni), ponte MG24 (2) e UDP (1) riempirebbero
+# esattamente il default di 10 socket.
+CONFIG_LWIP_MAX_SOCKETS=16
+# Margine per le intestazioni dei browser (cookie, User-Agent lunghi).
+CONFIG_HTTPD_MAX_REQ_HDR_LEN=2048
+
+# Ponte MG24 fino a 921600 baud anche mentre la flash è occupata (NVS, OTA).
+CONFIG_UART_ISR_IN_IRAM=y
+
+# OTA con ritorno automatico alla versione precedente: web_ui.c conferma la nuova
+# immagine alla prima richiesta API servita dopo il riavvio.
+CONFIG_BOOTLOADER_APP_ROLLBACK_ENABLE=y

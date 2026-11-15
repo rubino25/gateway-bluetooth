@@ -1,0 +1,14 @@
+# build e dipendenze scaricate
+firmware/build/
+firmware/managed_components/
+firmware/sdkconfig
+firmware/sdkconfig.old
+
+# backup della flash originale: non va pubblicato
+*.bin
+
+# Python
+.venv/
+__pycache__/
+.pytest_cache/
+*.log

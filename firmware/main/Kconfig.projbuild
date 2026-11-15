@@ -1,0 +1,86 @@
+menu "Xbox Ethernet Gateway"
+
+    menu "Ethernet (IP101, RMII)"
+        config GW_ETH_PHY_ADDR
+            int "Indirizzo PHY"
+            default 1
+        config GW_ETH_MDC_GPIO
+            int "GPIO MDC"
+            default 23
+        config GW_ETH_MDIO_GPIO
+            int "GPIO MDIO"
+            default 18
+        config GW_ETH_CLK_GPIO
+            int "GPIO clock RMII (ingresso, 50 MHz esterno)"
+            default 0
+        config GW_ETH_POWER_GPIO
+            int "GPIO alimentazione PHY (-1 = non usato)"
+            default 5
+    endmenu
+
+    menu "MG24 (Zigbee/Thread)"
+        config GW_MG24_UART_NUM
+            int "Numero UART"
+            default 1
+        config GW_MG24_RX_GPIO
+            int "GPIO RX (dati MG24 -> ESP32)"
+            default 13
+        config GW_MG24_TX_GPIO
+            int "GPIO TX (dati ESP32 -> MG24)"
+            default 17
+        config GW_MG24_RESET_GPIO
+            int "GPIO reset (attivo basso)"
+            default 15
+        config GW_MG24_BOOT_GPIO
+            int "GPIO bootloader (alto + reset = bootloader)"
+            default 12
+        config GW_MG24_DEFAULT_BAUD
+            int "Baud rate di default"
+            default 115200
+        config GW_MG24_TCP_PORT
+            int "Porta TCP del ponte seriale"
+            default 6638
+    endmenu
+
+    menu "LED e pulsante"
+        config GW_LED_R_GPIO
+            int "GPIO LED rosso"
+            default 4
+        config GW_LED_G_GPIO
+            int "GPIO LED verde"
+            default 14
+        config GW_LED_B_GPIO
+            int "GPIO LED blu"
+            default 2
+        config GW_BUTTON_GPIO
+            int "GPIO pulsante utente (attivo basso)"
+            default 34
+    endmenu
+
+    menu "Rete e PC"
+        config GW_DEVICE_NAME
+            string "Nome del dispositivo"
+            default "Xbox Gateway"
+        config GW_HOSTNAME
+            string "Hostname mDNS (senza .local)"
+            default "dongle-m"
+        config GW_PC_HOST
+            string "IP del PC (vuoto = broadcast)"
+            default ""
+        config GW_UDP_PORT
+            int "Porta UDP del protocollo v1"
+            default 47900
+    endmenu
+
+    menu "Controller"
+        config GW_BT_IDLE_TIMEOUT_MIN
+            int "Scollega il controller dopo N minuti senza uso (0 = mai)"
+            range 0 240
+            default 0
+            help
+                Valore iniziale dell'impostazione, modificabile dalla pagina web.
+                Conta solo l'uso da parte della persona (tasti, stick oltre la
+                zona morta, grilletti); vibrazione, sensori e batteria no.
+    endmenu
+
+endmenu

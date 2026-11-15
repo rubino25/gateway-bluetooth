@@ -1,0 +1,13 @@
+# Tabella partizioni per flash da 16 MB (SONOFF Dongle Max).
+# Due slot OTA da 4 MB: l'aggiornamento dalla pagina web scrive nello slot non
+# attivo. Dopo ota_1 restano liberi circa 7,8 MB per usi futuri.
+# NVS contiene: impostazioni del gateway, chiavi Bluetooth di BTstack (namespace
+# "BTstack") e proprietà di Bluepad32.
+#
+# Name,    Type, SubType,  Offset,   Size
+nvs,       data, nvs,      0x9000,   0x10000
+otadata,   data, ota,      0x19000,  0x2000
+phy_init,  data, phy,      0x1b000,  0x1000
+coredump,  data, coredump, 0x1c000,  0x14000
+ota_0,     app,  ota_0,    0x30000,  0x400000
+ota_1,     app,  ota_1,    0x430000, 0x400000

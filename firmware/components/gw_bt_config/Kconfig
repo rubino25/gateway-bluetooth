@@ -1,0 +1,121 @@
+menu "Xbox Gateway - Bluetooth"
+
+    choice GW_BT_LE_PAIRING
+        prompt "Abbinamento BLE (Security Manager)"
+        default GW_BT_LE_PAIRING_LEGACY_BOND
+        help
+            Requisiti di autenticazione passati a BTstack per i controller BLE
+            (il controller Xbox Series con firmware 5.x usa BLE).
+
+            Bluepad32 5.0.0-beta0 imposta "Legacy + bonding" e disattiva la
+            modalità "solo Secure Connections" (bt/uni_bt_le.c, uni_bt_le_setup).
+            Se il controller non si abbina o non si ricollega, provare le altre
+            voci. Dopo un cambio conviene usare "dimentica i controller".
+
+        config GW_BT_LE_PAIRING_LEGACY_BOND
+            bool "Legacy + bonding (default di Bluepad32 5.0.0-beta0)"
+        config GW_BT_LE_PAIRING_SC_BOND
+            bool "LE Secure Connections + bonding"
+        config GW_BT_LE_PAIRING_SC_NO_BOND
+            bool "LE Secure Connections, senza bonding"
+            help
+                Senza bonding il controller non viene memorizzato: si collega
+                solo quando l'abbinamento è attivo.
+        config GW_BT_LE_PAIRING_LEGACY_NO_BOND
+            bool "Legacy, senza bonding"
+            help
+                Senza bonding il controller non viene memorizzato: si collega
+                solo quando l'abbinamento è attivo.
+    endchoice
+
+    config GW_BT_BREDR
+        bool "Abilita anche Bluetooth classico (BR/EDR)"
+        default y
+        help
+            Serve per il DualSense (PS5) e gli altri controller classic
+            (DualShock 4...); il controller Xbox Series usa solo BLE.
+
+            Accesa: il gateway resta raggiungibile in BR/EDR (page scan) finché
+            non c'è un controller collegato, così un controller classic già
+            abbinato si ricollega da solo; la ricerca di controller nuovi
+            (inquiry periodica) gira solo con l'abbinamento attivo. Le
+            connessioni entranti passano dallo stesso filtro di abbinamento
+            dei controller BLE.
+
+            Spenta: Bluepad32 non inizializza il BR/EDR; restano solo i
+            controller BLE e tutto il tempo radio va alla scansione BLE.
+
+    config GW_BT_PAIRING_ALWAYS_AT_BOOT
+        bool "Accetta nuovi controller a ogni avvio"
+        default n
+        help
+            Spenta: all'avvio l'abbinamento è attivo solo se non c'è nessun
+            controller memorizzato; altrimenti si ricollegano solo quelli già
+            abbinati e l'abbinamento si avvia dalla pagina web.
+            Accesa: all'avvio si accetta qualsiasi controller in abbinamento.
+
+    config GW_BT_RECONNECT_HOLDOFF_S
+        int "Secondi di blocco dopo lo scollegamento manuale"
+        range 0 600
+        default 30
+        help
+            Dopo "scollega" dalla pagina web il controller, se resta acceso,
+            proverebbe subito a ricollegarsi. Per questo tempo le sue richieste
+            vengono ignorate. 0 = nessun blocco.
+            Per i controller classic (DualSense) il blocco dura al massimo
+            5 secondi: tornano solo quando si preme il loro tasto di accensione.
+
+    config GW_BT_TASK_PRIORITY
+        int "Priorità FreeRTOS del run loop Bluetooth"
+        range 1 21
+        default 19
+        help
+            Priorità del task in cui gira BTstack (il task main, sul core 0).
+            Il default di ESP-IDF è 1, sotto tutti gli altri task: qualsiasi
+            task occupato sul core 0 ritardava i report del controller.
+            19 sta sopra lwIP (18), ricezione Ethernet (15), ponte MG24 (10),
+            UDP (5) e pagina web, e sotto il task degli eventi (20), esp_timer
+            (22) e il controller Bluetooth (23). BTstack lavora per brevi tratti
+            e poi si blocca, quindi gli altri task non restano senza CPU.
+            Va usata con CONFIG_FREERTOS_HZ=1000 (sdkconfig.defaults): il run
+            loop aspetta i suoi timer in tick e, con un timer a meno di un tick,
+            gira a vuoto fino alla scadenza (a 100 Hz fino a 10 ms).
+            1 = comportamento originale.
+
+    config GW_BT_LE_FAST_CONN
+        bool "Connessione BLE a bassa latenza (7,5 ms)"
+        default y
+        help
+            Apre le connessioni BLE con intervallo 7,5 ms (il minimo della
+            specifica) e slave latency 0. Il default di BTstack è 10-30 ms con
+            latency 4: un tasto premuto aspetta in media metà intervallo prima
+            di partire, e con latency 4 la vibrazione può aspettare fino a
+            5 intervalli prima di arrivare al controller.
+            Costo: il controller consuma un po' più batteria.
+            Il controller può poi chiedere altri parametri, e di norma vengono
+            accettati: i valori in uso compaiono nel log ("Connessione BLE ...").
+            Non riguarda i controller classic (DualSense).
+
+    config GW_BT_LE_REJECT_SLOW_CONN
+        bool "Rifiuta le richieste di connessione BLE più lenta di 10 ms"
+        depends on GW_BT_LE_FAST_CONN
+        default n
+        help
+            Se il controller chiede un intervallo che può superare 10 ms, la
+            richiesta viene rifiutata e resta quello aperto dal gateway.
+            Da provare solo se il log mostra che il controller rallenta la
+            connessione: alcuni controller, quando la richiesta è rifiutata,
+            riprovano o si scollegano.
+
+    config GW_BT_LATENCY_STATS
+        bool "Statistiche di temporizzazione nel log"
+        default y
+        help
+            Ogni 10 s, con un controller collegato che ha mandato report, scrive
+            nel log: intervallo della connessione BLE in uso, intervallo tra due
+            report consecutivi (minimo, medio, massimo e per fasce) e tempo dal
+            report all'invio UDP verso il PC. Costa pochi µs per report.
+            Per misurare l'intervallo reale muovere uno stick di continuo: il
+            controller Xbox manda un report solo quando qualcosa cambia.
+
+endmenu

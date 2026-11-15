@@ -1,0 +1,60 @@
+# Configurazione del ricevitore PC di xbox-eth-gateway.
+# Valori di esempio: funzionano così come sono con VIIPER sullo stesso PC.
+
+[udp]
+# Indirizzo locale su cui ascoltare: "0.0.0.0" = tutte le interfacce di rete.
+bind_address = "0.0.0.0"
+# Deve coincidere con la porta UDP impostata nel dongle.
+port = 47900
+# Se la lista non è vuota si accettano pacchetti solo da questi indirizzi
+# (l'IP del dongle), ad esempio ["192.0.2.10"]. Vuota = da chiunque.
+allowed_sources = []
+
+[viiper]
+# Fase 1: VIIPER gira su questo PC, senza autenticazione.
+host = "127.0.0.1"
+port = 3242
+# 0 = usa il primo bus esistente o ne crea uno; altrimenti il numero del bus.
+bus_id = 0
+# Timeout delle richieste a VIIPER e attesa prima di riprovare se non risponde.
+timeout_s = 1.0
+retry_s = 3.0
+
+[mapping]
+# Solo per il pad Xbox 360. In Bluepad32 "su" è negativo, in XInput è positivo.
+# Se nei giochi l'asse verticale degli stick risulta rovesciato, mettere false.
+invert_y = true
+# Come compare sul PC un DualSense (PS5) collegato al dongle:
+# "dualsense" = DualSense virtuale (touchpad, giroscopio, barra luminosa, LED);
+# "xbox360"   = pad Xbox 360, per i giochi che non riconoscono il DualSense.
+dualsense = "dualsense"
+
+[timeouts]
+# Senza pacchetti dal dongle: dopo release_s si rilasciano tutti i comandi,
+# dopo remove_s si scollega il controller virtuale.
+release_s = 1.0
+remove_s = 5.0
+
+[rumble]
+# Durata scritta in ogni pacchetto RUMBLE e intervallo con cui viene rinnovato
+# finché il gioco tiene accesa la vibrazione.
+duration_ms = 500
+refresh_ms = 250
+# A riposo, ogni heartbeat_ms parte un RUMBLE a zero: serve al dongle per
+# sapere che il PC è presente. 0 = disattivato.
+heartbeat_ms = 1000
+
+[launcher]
+# Usati solo da avvia.bat / launcher.py. Vuoti = ricerca automatica:
+# usbip.exe nel PATH o in "Program Files\USBip"; viiper.exe nel PATH,
+# in %LOCALAPPDATA%\VIIPER o tra i Download.
+usbip_path = ""
+viiper_path = ""
+
+[simulate]
+# Destinazione dei pacchetti di simulate.py (il PC dove gira receiver.py).
+target = "127.0.0.1"
+
+[logging]
+# DEBUG, INFO, WARNING, ERROR
+level = "INFO"

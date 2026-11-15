@@ -1,0 +1,8 @@
+## Dipendenze gestite dall'IDF Component Manager (scaricate in managed_components/
+## alla prima configurazione; serve la rete).
+dependencies:
+  idf:
+    version: ">=5.5.0"
+  # mDNS non fa più parte di ESP-IDF dalla v5.0: è un componente esterno.
+  espressif/mdns:
+    version: ">=1.4.0,<2.0.0"
