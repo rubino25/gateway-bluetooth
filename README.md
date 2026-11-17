@@ -1,5 +1,7 @@
 # xbox-eth-gateway
 
+> **Progetto realizzato interamente con l'intelligenza artificiale, in *vibe coding*.** Codice, script e documentazione sono stati scritti da un'AI seguendo le indicazioni dell'autore, senza una revisione manuale riga per riga. Usalo sapendolo, a tuo rischio.
+
 Firmware custom per **SONOFF Dongle Max (Dongle-M)** che rifà le funzioni principali
 dell'originale e aggiunge un gateway Bluetooth per un controller Xbox:
 
